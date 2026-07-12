@@ -1,0 +1,52 @@
+name: Bot de Noticias
+
+on:
+  schedule:
+    # Cada 5 minutos. GitHub usa UTC; la hora de Madrid se calcula dentro del bot.
+    - cron: "*/5 * * * *"
+  workflow_dispatch:        # permite lanzarlo a mano desde la pestana Actions
+
+# Permite que el workflow haga commit del state.json actualizado
+permissions:
+  contents: write
+
+# Evita que dos ejecuciones se pisen (races al hacer push del state.json)
+concurrency:
+  group: bot-noticias
+  cancel-in-progress: false
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configurar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Instalar dependencias
+        run: pip install -r requirements.txt
+
+      - name: Ejecutar el bot
+        env:
+          BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+          CHAT_ID: ${{ secrets.CHAT_ID }}
+        run: python bot.py
+
+      - name: Guardar estado (commit de state.json si cambio)
+        run: |
+          if [[ -n "$(git status --porcelain state.json)" ]]; then
+            git config user.name  "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add state.json
+            git commit -m "chore: actualizar estado del bot [skip ci]"
+            # por si otra ejecucion hizo push mientras tanto
+            git pull --rebase --autostash origin "${GITHUB_REF_NAME}" || true
+            git push
+          else
+            echo "state.json sin cambios; no hay nada que commitear."
+          fi
