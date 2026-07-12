@@ -25,7 +25,9 @@ def _call(token, method, params=None, files=None, retries=2):
         try:
             resp = requests.post(url, data=params, timeout=config.HTTP_TIMEOUT)
         except requests.RequestException as exc:
-            log(f"[tg] error de red en {method}: {exc}")
+            # nunca dejar el token en el log (aunque GitHub tambien lo censura)
+            safe = str(exc).replace(token, "***")
+            log(f"[tg] error de red en {method}: {safe}")
             time.sleep(1)
             continue
         if resp.status_code == 429:
