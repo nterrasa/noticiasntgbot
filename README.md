@@ -156,6 +156,33 @@ con botones. (Sin `FORCE_MORNING`, el resumen solo sale entre las 09:00 y las
 
 ---
 
+## 🤖 Asistente con Claude (segundo bot, para hablar)
+
+`claude-bot.sh` abre **Claude Code en este Mac con el canal oficial de
+Telegram**: le hablas como a un chat (noticias de las fuentes de `config.py`,
+estado de Klap, Gmail, Google Calendar). Tira de tu plan de Claude (no gasta
+API) y solo responde **mientras el Mac está encendido y el script abierto**.
+
+> ⚠️ **Es otro bot, con otro token.** No uses el `BOT_TOKEN` de GitHub: si dos
+> programas leen los mensajes del mismo bot, se los roban entre sí.
+
+**Puesta en marcha (una vez, ~5 min):**
+1. En **@BotFather**: `/newbot` → copia el token (es un bot distinto al de las
+   noticias).
+2. En una terminal abre `claude` y escribe `/telegram:configure <token>`.
+   Después `/mcp` y conecta **claude.ai Gmail** y **claude.ai Google Calendar**.
+3. Cierra Claude y ejecuta `bash claude-bot.sh` (desde esta carpeta).
+4. Escríbele al bot: te contesta con un código. En la terminal:
+   `/telegram:access pair <código>` y luego `/telegram:access policy allowlist`
+   (así solo te responde a ti).
+
+**Bueno saber:** cuando vaya a hacer algo con riesgo, te pregunta en Telegram
+con botones de aprobar/rechazar (a propósito no se arranca con los permisos
+desactivados: un correo o una web podrían colarle órdenes). Las notas de voz no
+las entiende: usa el dictado del teclado.
+
+---
+
 ## 🔒 Seguridad
 
 - El bot **solo atiende a tu `CHAT_ID`**: si otra persona encuentra el bot y le
