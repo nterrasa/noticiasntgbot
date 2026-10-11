@@ -5,7 +5,7 @@ import html
 import re
 import sys
 from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import feedparser
 import requests
@@ -24,8 +24,8 @@ class Item:
     link: str
     summary: str
     source_name: str
-    source_type: str        # "rss" | "gnews"
-    published: datetime     # siempre timezone-aware (UTC); epoch si desconocido
+    source_type: str  # "rss" | "gnews"
+    published: datetime  # siempre timezone-aware (UTC); epoch si desconocido
 
 
 # ---------------------------------------------------------------------------
@@ -67,7 +67,7 @@ def _strip_publisher(title):
 # ---------------------------------------------------------------------------
 # Fecha
 # ---------------------------------------------------------------------------
-_EPOCH = datetime(1970, 1, 1, tzinfo=timezone.utc)
+_EPOCH = datetime(1970, 1, 1, tzinfo=UTC)
 
 
 def _parse_date(entry):
@@ -75,7 +75,8 @@ def _parse_date(entry):
         st = getattr(entry, attr, None)
         if st:
             try:
-                return datetime(*st[:6], tzinfo=timezone.utc)
+                y, mo, d, h, mi, sec = st[:6]
+                return datetime(y, mo, d, h, mi, sec, tzinfo=UTC)
             except (ValueError, TypeError):
                 pass
     return None
@@ -155,7 +156,7 @@ def get_category_items(cat_key, max_items, sent_ids, fresh_hours=None):
     - fresh_hours: si se indica, solo items publicados en esas ultimas horas.
     """
     cat = config.CATEGORIES[cat_key]
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     max_age = now.timestamp() - config.MAX_AGE_DAYS * 86400
 
     collected = []
@@ -205,7 +206,7 @@ def format_item(item):
         return (
             f"<b>{title}</b>\n"
             f"<i>Fuente: {esc(item.source_name)}</i>\n"
-            f'<a href="{link}">\U0001F517 Abrir noticia</a>'
+            f'<a href="{link}">\U0001f517 Abrir noticia</a>'
         )
     # feed nativo: enlace visible para que Telegram muestre la vista previa
     parts = [f"<b>{title}</b>"]

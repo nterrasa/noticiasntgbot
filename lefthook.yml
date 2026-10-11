@@ -1,0 +1,4 @@
+pre-push:
+  commands:
+    validate:
+      run: mise x -- bash validate.sh

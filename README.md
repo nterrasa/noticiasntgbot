@@ -26,6 +26,10 @@ quieras. **No necesita servidor**: se ejecuta gratis en GitHub Actions.
 | `state.json` | Memoria del bot (último mensaje leído, fecha del último resumen, noticias ya enviadas). Se actualiza solo. |
 | `.github/workflows/bot.yml` | El "reloj": ejecuta el bot cada 5 minutos. |
 | `requirements.txt` | Dependencias de Python. |
+| `claude-bot.sh` | El segundo bot, para hablar con Claude (ver «Asistente con Claude»). |
+| `validate.sh` | Comprueba tipos, estilo, formato y pruebas: una línea ✅/❌ por cada cosa. |
+| `test_bot.py` | Las pruebas (sin red ni Telegram): solo te contesta a ti, no repite noticias… |
+| `mise.toml` / `lefthook.yml` | Versiones fijas de las herramientas y el aviso que pasa `validate.sh` antes de cada `git push`. |
 
 ---
 
@@ -110,7 +114,8 @@ probarlo en tu ordenador (ver abajo) con `FORCE_MORNING=1`.
 
 **Prueba en tu ordenador (opcional):**
 ```bash
-python3 -m venv venv && source venv/bin/activate
+mise install                # Python 3.12 (el del Mac es más viejo y no vale)
+mise x -- python -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 export BOT_TOKEN="123456789:AAE...xyz"
 export CHAT_ID="987654321"
@@ -120,6 +125,15 @@ python bot.py
 Esto responde a tus comandos pendientes y te envía el resumen de "buenos días"
 con botones. (Sin `FORCE_MORNING`, el resumen solo sale entre las 09:00 y las
 12:00 de Madrid.)
+
+---
+
+## ✅ Antes de subir cambios
+
+```bash
+mise install && mise x -- lefthook install   # una vez por ordenador
+mise x -- bash validate.sh                   # lo que también corre solo en cada git push
+```
 
 ---
 

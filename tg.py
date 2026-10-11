@@ -49,15 +49,18 @@ def log(msg):
 
 def get_updates(token, offset):
     """Lee mensajes/callbacks nuevos (polling corto, sin long polling)."""
-    return _call(
-        token,
-        "getUpdates",
-        {
-            "offset": offset,
-            "timeout": 0,
-            "allowed_updates": ["message", "callback_query"],
-        },
-    ) or []
+    return (
+        _call(
+            token,
+            "getUpdates",
+            {
+                "offset": offset,
+                "timeout": 0,
+                "allowed_updates": ["message", "callback_query"],
+            },
+        )
+        or []
+    )
 
 
 def send_message(token, chat_id, text, reply_markup=None, disable_preview=False):
@@ -80,4 +83,6 @@ def send_message(token, chat_id, text, reply_markup=None, disable_preview=False)
 
 def answer_callback(token, callback_id, text=None):
     """Cierra el 'cargando' de un boton. Puede fallar si el callback caduco: se ignora."""
-    _call(token, "answerCallbackQuery", {"callback_query_id": callback_id, "text": text})
+    _call(
+        token, "answerCallbackQuery", {"callback_query_id": callback_id, "text": text}
+    )

@@ -10,7 +10,7 @@ El commit de este archivo lo hace el workflow de GitHub Actions cuando cambia.
 
 import json
 import os
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 import config
 
@@ -41,7 +41,7 @@ def save(state):
 
 def prune_sent(state):
     """Elimina noticias enviadas hace mas de SENT_TTL_DAYS para no crecer sin fin."""
-    limit = datetime.now(timezone.utc) - timedelta(days=config.SENT_TTL_DAYS)
+    limit = datetime.now(UTC) - timedelta(days=config.SENT_TTL_DAYS)
     sent = state.get("sent", {})
     kept = {}
     for item_id, iso in sent.items():
@@ -50,7 +50,7 @@ def prune_sent(state):
         except ValueError:
             continue  # entrada rara -> se descarta
         if when.tzinfo is None:
-            when = when.replace(tzinfo=timezone.utc)
+            when = when.replace(tzinfo=UTC)
         if when >= limit:
             kept[item_id] = iso
     state["sent"] = kept
@@ -58,7 +58,7 @@ def prune_sent(state):
 
 def mark_sent(state, item_id):
     """Marca una noticia como ya enviada (ahora, en UTC)."""
-    state["sent"][item_id] = datetime.now(timezone.utc).isoformat()
+    state["sent"][item_id] = datetime.now(UTC).isoformat()
 
 
 def is_sent(state, item_id):

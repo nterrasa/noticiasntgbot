@@ -11,11 +11,7 @@ El token y el chat_id se leen SIEMPRE de variables de entorno (GitHub Secrets):
 import os
 import sys
 from datetime import datetime
-
-try:
-    from zoneinfo import ZoneInfo
-except ImportError:  # Python < 3.9 (no deberia pasar en Actions)
-    ZoneInfo = None
+from zoneinfo import ZoneInfo
 
 import config
 import news
@@ -31,15 +27,15 @@ def log(msg):
 # Textos del bot (en espanol)
 # ---------------------------------------------------------------------------
 HELP_TEXT = (
-    "\U0001F44B <b>Bot de Noticias</b>\n\n"
+    "\U0001f44b <b>Bot de Noticias</b>\n\n"
     "Cada manana a las 09:00 (hora de Madrid) te mando un resumen con las "
     "novedades de cada sector y botones para leer las noticias.\n\n"
     "Tambien puedes pedirme noticias cuando quieras con estos comandos:\n"
-    "\U0001F69C /granjas — Granjas y farming (UK e Irlanda)\n"
-    "\U0001F33E /agricola — Agricola (España y Cataluña)\n"
-    "\U0001F3AC /cine — Cine, audiovisual, marketing y motion\n"
-    "\U0001F697 /coches — Coches\n"
-    "\U0001F4F0 /todo — Un poco de todas las categorias\n"
+    "\U0001f69c /granjas — Granjas y farming (UK e Irlanda)\n"
+    "\U0001f33e /agricola — Agricola (España y Cataluña)\n"
+    "\U0001f3ac /cine — Cine, audiovisual, marketing y motion\n"
+    "\U0001f697 /coches — Coches\n"
+    "\U0001f4f0 /todo — Un poco de todas las categorias\n"
     "ℹ️ /ayuda — Ver esta ayuda\n\n"
     "<i>Nota: como el bot es gratuito y se ejecuta cada 5 minutos, puede "
     "tardar hasta ~5 min en responderte. Las noticias de UK/Irlanda salen en "
@@ -48,13 +44,25 @@ HELP_TEXT = (
 
 _WEEKDAYS = ["lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"]
 _MONTHS = [
-    "enero", "febrero", "marzo", "abril", "mayo", "junio",
-    "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre",
+    "enero",
+    "febrero",
+    "marzo",
+    "abril",
+    "mayo",
+    "junio",
+    "julio",
+    "agosto",
+    "septiembre",
+    "octubre",
+    "noviembre",
+    "diciembre",
 ]
 
 
 def _spanish_date(dt):
-    return f"{_WEEKDAYS[dt.weekday()]}, {dt.day} de {_MONTHS[dt.month - 1]} de {dt.year}"
+    return (
+        f"{_WEEKDAYS[dt.weekday()]}, {dt.day} de {_MONTHS[dt.month - 1]} de {dt.year}"
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -69,13 +77,17 @@ def deliver_category(cat_key, state, token, chat_id, todo=False, silent_if_empty
     header = f"{cat['emoji']} <b>{cat['title']}</b>"
     if not items:
         if not silent_if_empty:
-            tg.send_message(token, chat_id,
-                            f"{header}\nNo hay noticias nuevas ahora mismo.",
-                            disable_preview=True)
+            tg.send_message(
+                token,
+                chat_id,
+                f"{header}\nNo hay noticias nuevas ahora mismo.",
+                disable_preview=True,
+            )
         return 0
 
-    tg.send_message(token, chat_id, f"{header} — últimas noticias",
-                    disable_preview=True)
+    tg.send_message(
+        token, chat_id, f"{header} — últimas noticias", disable_preview=True
+    )
     for item in items:
         tg.send_message(token, chat_id, news.format_item(item))
         state_mod.mark_sent(state, item.id)
@@ -84,16 +96,21 @@ def deliver_category(cat_key, state, token, chat_id, todo=False, silent_if_empty
 
 def deliver_all(state, token, chat_id):
     """Comando /todo: unas pocas noticias de cada categoria."""
-    tg.send_message(token, chat_id, "\U0001F4F0 <b>Un poco de todo</b>",
-                    disable_preview=True)
+    tg.send_message(
+        token, chat_id, "\U0001f4f0 <b>Un poco de todo</b>", disable_preview=True
+    )
     total = 0
     for cat_key in config.CATEGORY_ORDER:
-        total += deliver_category(cat_key, state, token, chat_id,
-                                  todo=True, silent_if_empty=True)
+        total += deliver_category(
+            cat_key, state, token, chat_id, todo=True, silent_if_empty=True
+        )
     if total == 0:
-        tg.send_message(token, chat_id,
-                        "No hay noticias nuevas en ninguna categoria ahora mismo.",
-                        disable_preview=True)
+        tg.send_message(
+            token,
+            chat_id,
+            "No hay noticias nuevas en ninguna categoria ahora mismo.",
+            disable_preview=True,
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -102,13 +119,16 @@ def deliver_all(state, token, chat_id):
 def _morning_keyboard():
     def btn(key):
         c = config.CATEGORIES[key]
-        return {"text": f"{c['emoji']} {c['title'].split(' (')[0]}",
-                "callback_data": f"cat:{key}"}
+        return {
+            "text": f"{c['emoji']} {c['title'].split(' (')[0]}",
+            "callback_data": f"cat:{key}",
+        }
+
     return {
         "inline_keyboard": [
             [btn("granjas"), btn("agricola")],
             [btn("cine"), btn("coches")],
-            [{"text": "\U0001F4F0 Ver todo", "callback_data": "cat:todo"}],
+            [{"text": "\U0001f4f0 Ver todo", "callback_data": "cat:todo"}],
         ]
     }
 
@@ -116,8 +136,8 @@ def _morning_keyboard():
 def send_morning(state, token, chat_id, now_madrid):
     """Un mensaje de buenos dias con teaser por sector + botones para leer."""
     lines = [
-        "\U0001F305 <b>Buenos días</b>",
-        f"\U0001F4C5 {_spanish_date(now_madrid)}",
+        "\U0001f305 <b>Buenos días</b>",
+        f"\U0001f4c5 {_spanish_date(now_madrid)}",
         "",
         "Novedades por sector:",
     ]
@@ -139,10 +159,15 @@ def send_morning(state, token, chat_id, now_madrid):
         else:
             lines.append(f"{cat['emoji']} <b>{short_title}</b>: sin novedades")
     lines.append("")
-    lines.append("Pulsa un botón para leer las noticias \U0001F447")
+    lines.append("Pulsa un botón para leer las noticias \U0001f447")
 
-    tg.send_message(token, chat_id, "\n".join(lines),
-                    reply_markup=_morning_keyboard(), disable_preview=True)
+    tg.send_message(
+        token,
+        chat_id,
+        "\n".join(lines),
+        reply_markup=_morning_keyboard(),
+        disable_preview=True,
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -173,9 +198,12 @@ def handle_update(update, state, token, chat_id):
         return  # solo atendemos a nuestro chat_id
     text = (message.get("text") or "").strip()
     if not text.startswith("/"):
-        tg.send_message(token, chat_id,
-                        "No te he entendido. Escribe /ayuda para ver los comandos.",
-                        disable_preview=True)
+        tg.send_message(
+            token,
+            chat_id,
+            "No te he entendido. Escribe /ayuda para ver los comandos.",
+            disable_preview=True,
+        )
         return
 
     cmd = text.split()[0].lstrip("/").split("@")[0].lower()
@@ -186,9 +214,12 @@ def handle_update(update, state, token, chat_id):
     elif cmd in config.CATEGORIES:
         deliver_category(cmd, state, token, chat_id)
     else:
-        tg.send_message(token, chat_id,
-                        "Comando no reconocido. Escribe /ayuda.",
-                        disable_preview=True)
+        tg.send_message(
+            token,
+            chat_id,
+            "Comando no reconocido. Escribe /ayuda.",
+            disable_preview=True,
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -210,12 +241,11 @@ def main():
         state["offset"] = update["update_id"] + 1
         try:
             handle_update(update, state, token, chat_id)
-        except Exception as exc:  # un update roto no debe tumbar el resto
+        except Exception as exc:  # noqa: BLE001 — un update roto no debe tumbar el resto
             log(f"[bot] error procesando update {update.get('update_id')}: {exc}")
 
     # 2) Resumen de la manana (09:00 Madrid, una vez al dia)
-    tz = ZoneInfo(config.TIMEZONE) if ZoneInfo else None
-    now_madrid = datetime.now(tz)
+    now_madrid = datetime.now(ZoneInfo(config.TIMEZONE))
     today = now_madrid.strftime("%Y-%m-%d")
     force = os.environ.get("FORCE_MORNING") == "1"
     in_window = config.SEND_HOUR <= now_madrid.hour < config.SEND_WINDOW_END_HOUR
@@ -225,12 +255,14 @@ def main():
             send_morning(state, token, chat_id, now_madrid)
             if not force:  # en modo test no marcamos, para no bloquear el real
                 state["last_summary_date"] = today
-        except Exception as exc:
+        except Exception as exc:  # noqa: BLE001 — sin resumen, pero el estado se guarda
             log(f"[bot] error enviando el resumen: {exc}")
 
     state_mod.save(state)
-    log(f"[bot] listo. updates={len(updates)} offset={state['offset']} "
-        f"sent_cache={len(state['sent'])}")
+    log(
+        f"[bot] listo. updates={len(updates)} offset={state['offset']} "
+        f"sent_cache={len(state['sent'])}"
+    )
 
 
 if __name__ == "__main__":
