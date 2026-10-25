@@ -140,10 +140,26 @@ CATEGORIES: dict[str, dict] = {
             },
         ],
     },
+    "economia": {
+        "emoji": "\U0001f4bc",  # briefcase
+        "title": "Economía (FT & Expansión)",
+        "sources": [
+            {
+                "name": "Financial Times",
+                "type": "rss",
+                "url": "https://www.ft.com/rss/home/international",
+            },
+            {
+                "name": "Expansión",
+                "type": "rss",
+                "url": "https://e00-expansion.uecdn.es/rss/portada.xml",
+            },
+        ],
+    },
 }
 
 # Orden en que se muestran las categorias
-CATEGORY_ORDER = ["granjas", "agricola", "cine", "coches"]
+CATEGORY_ORDER = ["granjas", "agricola", "cine", "coches", "economia"]
 
 # User-Agent para pedir los feeds (algunos servidores rechazan el de por defecto)
 USER_AGENT = (

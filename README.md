@@ -7,7 +7,7 @@ quieras. **No necesita servidor**: se ejecuta gratis en GitHub Actions.
 - 🌅 **Resumen de la mañana**: un mensaje de "buenos días" con un teaser por
   sector y **botones** para leer las noticias de cada categoría.
 - 💬 **Comandos** en cualquier momento: `/granjas`, `/agricola`, `/cine`,
-  `/coches`, `/todo`, `/resumen` (o el botón fijo «📋 Resumen»), `/ayuda`.
+  `/coches`, `/economia`, `/todo`, `/resumen` (o el botón fijo «📋 Resumen»), `/ayuda`.
 - 🆓 **Modo gratis**: cada noticia es titular + 1-2 frases (la descripción del
   RSS) + enlace, con la vista previa de Telegram. Sin traducción (las noticias
   de UK/Irlanda salen en inglés).

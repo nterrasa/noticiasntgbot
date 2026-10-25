@@ -35,6 +35,7 @@ HELP_TEXT = (
     "\U0001f33e /agricola — Agricola (España y Cataluña)\n"
     "\U0001f3ac /cine — Cine, audiovisual, marketing y motion\n"
     "\U0001f697 /coches — Coches\n"
+    "\U0001f4bc /economia — Economía (Financial Times y Expansión)\n"
     "\U0001f4f0 /todo — Un poco de todas las categorias\n"
     "\U0001f4cb /resumen — Resumen de ahora (o el botón Resumen de abajo)\n"
     "ℹ️ /ayuda — Ver esta ayuda\n\n"
@@ -145,6 +146,7 @@ def _morning_keyboard():
         "inline_keyboard": [
             [btn("granjas"), btn("agricola")],
             [btn("cine"), btn("coches")],
+            [btn("economia")],
             [{"text": "\U0001f4f0 Ver todo", "callback_data": "cat:todo"}],
         ]
     }
