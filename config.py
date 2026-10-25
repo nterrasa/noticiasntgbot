@@ -8,7 +8,8 @@ entorno (GitHub Secrets) en bot.py, nunca se escriben en el codigo.
 # Zona horaria y hora del resumen de la manana
 # ---------------------------------------------------------------------------
 TIMEZONE = "Europe/Madrid"  # gestiona automaticamente verano/invierno (DST)
-SEND_HOUR = 9  # enviar el resumen a partir de las 09:00 Madrid
+SEND_HOUR = 8  # enviar el resumen a partir de las 08:30 Madrid
+SEND_MINUTE = 30
 SEND_WINDOW_END_HOUR = 12  # ...pero solo hasta las 12:00 (si Actions estuvo
 #    caido toda la manana, se salta el dia)
 

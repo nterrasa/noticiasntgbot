@@ -46,6 +46,19 @@ assert sent == [], sent
 bot.handle_update({"message": {"chat": {"id": 42}, "text": "/ayuda"}}, st, "t", "42")
 assert sent == [bot.HELP_TEXT], sent
 
+# The fixed "Resumen" button sends the summary of right now.
+sent.clear()
+bot.handle_update(
+    {"message": {"chat": {"id": 42}, "text": bot.SUMMARY_BUTTON}}, st, "t", "42"
+)
+assert len(sent) == 1 and "Resumen de ahora" in sent[0], sent
+
+# Morning summary from 08:30 until before 12:00 (Madrid).
+assert [
+    bot.is_summary_time(datetime(2026, 1, 1, h, m))
+    for h, m in [(8, 29), (8, 30), (9, 5), (12, 0)]
+] == [False, True, True, False]
+
 # Newest first, no repeats across sources or titles, nothing already sent or too old.
 assert [i.id for i in news.get_category_items("coches", 5, {"sent"})] == [
     "fresh",

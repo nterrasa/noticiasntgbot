@@ -2,7 +2,7 @@
 
 En cada ejecucion (cron cada 5 min) hace dos cosas:
   1) Lee comandos/botones nuevos con getUpdates y responde (solo a CHAT_ID).
-  2) Si son ~las 09:00 de Madrid y hoy aun no se envio el resumen, lo envia.
+  2) Si son ~las 08:30 de Madrid y hoy aun no se envio el resumen, lo envia.
 
 El token y el chat_id se leen SIEMPRE de variables de entorno (GitHub Secrets):
   BOT_TOKEN, CHAT_ID.  Nunca se escriben en el codigo.
@@ -28,7 +28,7 @@ def log(msg):
 # ---------------------------------------------------------------------------
 HELP_TEXT = (
     "\U0001f44b <b>Bot de Noticias</b>\n\n"
-    "Cada manana a las 09:00 (hora de Madrid) te mando un resumen con las "
+    "Cada manana a las 08:30 (hora de Madrid) te mando un resumen con las "
     "novedades de cada sector y botones para leer las noticias.\n\n"
     "Tambien puedes pedirme noticias cuando quieras con estos comandos:\n"
     "\U0001f69c /granjas — Granjas y farming (UK e Irlanda)\n"
@@ -36,11 +36,20 @@ HELP_TEXT = (
     "\U0001f3ac /cine — Cine, audiovisual, marketing y motion\n"
     "\U0001f697 /coches — Coches\n"
     "\U0001f4f0 /todo — Un poco de todas las categorias\n"
+    "\U0001f4cb /resumen — Resumen de ahora (o el botón Resumen de abajo)\n"
     "ℹ️ /ayuda — Ver esta ayuda\n\n"
     "<i>Nota: como el bot es gratuito y se ejecuta cada 5 minutos, puede "
     "tardar hasta ~5 min en responderte. Las noticias de UK/Irlanda salen en "
     "su idioma original.</i>"
 )
+
+# Boton fijo bajo el teclado: al pulsarlo Telegram manda su texto como mensaje.
+SUMMARY_BUTTON = "\U0001f4cb Resumen"
+REPLY_KEYBOARD = {
+    "keyboard": [[{"text": SUMMARY_BUTTON}]],
+    "resize_keyboard": True,
+    "is_persistent": True,
+}
 
 _WEEKDAYS = ["lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"]
 _MONTHS = [
@@ -86,7 +95,11 @@ def deliver_category(cat_key, state, token, chat_id, todo=False, silent_if_empty
         return 0
 
     tg.send_message(
-        token, chat_id, f"{header} — últimas noticias", disable_preview=True
+        token,
+        chat_id,
+        f"{header} — últimas noticias",
+        reply_markup=REPLY_KEYBOARD,
+        disable_preview=True,
     )
     for item in items:
         tg.send_message(token, chat_id, news.format_item(item))
@@ -97,7 +110,11 @@ def deliver_category(cat_key, state, token, chat_id, todo=False, silent_if_empty
 def deliver_all(state, token, chat_id):
     """Comando /todo: unas pocas noticias de cada categoria."""
     tg.send_message(
-        token, chat_id, "\U0001f4f0 <b>Un poco de todo</b>", disable_preview=True
+        token,
+        chat_id,
+        "\U0001f4f0 <b>Un poco de todo</b>",
+        reply_markup=REPLY_KEYBOARD,
+        disable_preview=True,
     )
     total = 0
     for cat_key in config.CATEGORY_ORDER:
@@ -133,10 +150,12 @@ def _morning_keyboard():
     }
 
 
-def send_morning(state, token, chat_id, now_madrid):
-    """Un mensaje de buenos dias con teaser por sector + botones para leer."""
+def send_morning(
+    state, token, chat_id, now_madrid, title="\U0001f305 <b>Buenos días</b>"
+):
+    """Un mensaje (buenos dias o /resumen) con teaser por sector + botones para leer."""
     lines = [
-        "\U0001f305 <b>Buenos días</b>",
+        title,
         f"\U0001f4c5 {_spanish_date(now_madrid)}",
         "",
         "Novedades por sector:",
@@ -197,18 +216,32 @@ def handle_update(update, state, token, chat_id):
     if str(message.get("chat", {}).get("id", "")) != str(chat_id):
         return  # solo atendemos a nuestro chat_id
     text = (message.get("text") or "").strip()
+    if text == SUMMARY_BUTTON:
+        text = "/resumen"
     if not text.startswith("/"):
         tg.send_message(
             token,
             chat_id,
             "No te he entendido. Escribe /ayuda para ver los comandos.",
+            reply_markup=REPLY_KEYBOARD,
             disable_preview=True,
         )
         return
 
     cmd = text.split()[0].lstrip("/").split("@")[0].lower()
     if cmd in ("start", "ayuda", "help"):
-        tg.send_message(token, chat_id, HELP_TEXT, disable_preview=True)
+        tg.send_message(
+            token, chat_id, HELP_TEXT, reply_markup=REPLY_KEYBOARD, disable_preview=True
+        )
+    elif cmd == "resumen":
+        now_madrid = datetime.now(ZoneInfo(config.TIMEZONE))
+        send_morning(
+            state,
+            token,
+            chat_id,
+            now_madrid,
+            title="\U0001f4cb <b>Resumen de ahora</b>",
+        )
     elif cmd == "todo":
         deliver_all(state, token, chat_id)
     elif cmd in config.CATEGORIES:
@@ -218,8 +251,17 @@ def handle_update(update, state, token, chat_id):
             token,
             chat_id,
             "Comando no reconocido. Escribe /ayuda.",
+            reply_markup=REPLY_KEYBOARD,
             disable_preview=True,
         )
+
+
+def is_summary_time(now_madrid):
+    """Desde las 08:30 hasta antes de las 12:00 (hora de Madrid)."""
+    start = (config.SEND_HOUR, config.SEND_MINUTE)
+    return start <= (now_madrid.hour, now_madrid.minute) and (
+        now_madrid.hour < config.SEND_WINDOW_END_HOUR
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -244,11 +286,11 @@ def main():
         except Exception as exc:  # noqa: BLE001 — un update roto no debe tumbar el resto
             log(f"[bot] error procesando update {update.get('update_id')}: {exc}")
 
-    # 2) Resumen de la manana (09:00 Madrid, una vez al dia)
+    # 2) Resumen de la manana (08:30 Madrid, una vez al dia)
     now_madrid = datetime.now(ZoneInfo(config.TIMEZONE))
     today = now_madrid.strftime("%Y-%m-%d")
     force = os.environ.get("FORCE_MORNING") == "1"
-    in_window = config.SEND_HOUR <= now_madrid.hour < config.SEND_WINDOW_END_HOUR
+    in_window = is_summary_time(now_madrid)
     if force or (state.get("last_summary_date") != today and in_window):
         log(f"[bot] enviando resumen de la manana (force={force})")
         try:

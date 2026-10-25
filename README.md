@@ -1,13 +1,13 @@
 # 📰 Bot de Noticias de Telegram (gratis, con GitHub Actions)
 
-Un bot de Telegram que **cada mañana a las 09:00 (hora de Madrid)** te manda un
+Un bot de Telegram que **cada mañana a las 08:30 (hora de Madrid)** te manda un
 resumen de novedades por sectores y que además responde a comandos cuando
 quieras. **No necesita servidor**: se ejecuta gratis en GitHub Actions.
 
 - 🌅 **Resumen de la mañana**: un mensaje de "buenos días" con un teaser por
   sector y **botones** para leer las noticias de cada categoría.
 - 💬 **Comandos** en cualquier momento: `/granjas`, `/agricola`, `/cine`,
-  `/coches`, `/todo`, `/ayuda`.
+  `/coches`, `/todo`, `/resumen` (o el botón fijo «📋 Resumen»), `/ayuda`.
 - 🆓 **Modo gratis**: cada noticia es titular + 1-2 frases (la descripción del
   RSS) + enlace, con la vista previa de Telegram. Sin traducción (las noticias
   de UK/Irlanda salen en inglés).
@@ -123,7 +123,7 @@ export FORCE_MORNING=1      # fuerza el envío del resumen de la mañana ahora
 python bot.py
 ```
 Esto responde a tus comandos pendientes y te envía el resumen de "buenos días"
-con botones. (Sin `FORCE_MORNING`, el resumen solo sale entre las 09:00 y las
+con botones. (Sin `FORCE_MORNING`, el resumen solo sale entre las 08:30 y las
 12:00 de Madrid.)
 
 ---
@@ -139,7 +139,7 @@ mise x -- bash validate.sh                   # lo que también corre solo en cad
 
 ## ⚙️ Personalizar (todo en `config.py`)
 
-- **Hora del resumen**: `SEND_HOUR = 9` (hora de Madrid).
+- **Hora del resumen**: `SEND_HOUR = 8` + `SEND_MINUTE = 30` (hora de Madrid).
 - **Cuántas noticias**: `MAX_PER_CATEGORY` (comandos), `MAX_PER_CATEGORY_TODO`
   (`/todo`).
 - **Cada cuánto revisa**: en `.github/workflows/bot.yml`, el `cron: "*/5 * * * *"`.
@@ -157,7 +157,7 @@ mise x -- bash validate.sh                   # lo que también corre solo en cad
   gratis).
 - **La hora exacta** del cron de GitHub Actions puede variar unos minutos según
   la carga de GitHub; por eso el resumen se manda en la **primera** ejecución a
-  partir de las 09:00 (y como muy tarde a las 12:00).
+  partir de las 08:30 (y como muy tarde a las 12:00).
 - **Fuentes sin RSS propio** (Farmers Weekly, Farmers Guardian, Interempresas,
   ControlPublicidad, Reason Why, Marketing Directo) se leen vía **Google News**:
   llega el titular y el enlace, pero sin descripción y con vista previa genérica.
